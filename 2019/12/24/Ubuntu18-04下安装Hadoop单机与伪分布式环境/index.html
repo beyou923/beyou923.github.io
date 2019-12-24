@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-     面朝大海，春暖花开
+    Ubuntu18.04下安装Hadoop单机与伪分布式环境 |  面朝大海，春暖花开
   </title>
   
   <link rel="shortcut icon" href="/favicon.ico" />
@@ -30,46 +30,17 @@
 <body>
   <div id="app">
     <main class="content">
-      
-<section class="cover">
-    
-  <div class="cover-frame">
-    <div class="bg-box">
-      <img src="/images/cover1.jpg" alt="image frame" />
-    </div>
-    <div class="cover-inner text-center text-white">
-      <h1><a href="/">面朝大海，春暖花开</a></h1>
-      <h2></h2>
-      <div>
-        
-      </div>
-    </div>
-  </div>
-  <div class="cover-learn-more">
-    <a href="#main" class="anchor"><i class="ri-arrow-down-line"></i></a>
-  </div>
-</section>
-
-<div id="main">
-  <section class="outer">
-  <article class="articles">
-    
-    <h1 class="page-type-title"></h1>
-
-    
-    
-    <article id="post-Ubuntu18-04下安装Hadoop单机与伪分布式环境" class="article article-type-post" itemscope
+      <section class="outer">
+  <article id="post-Ubuntu18-04下安装Hadoop单机与伪分布式环境" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
     
     <header class="article-header">
        
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/12/24/Ubuntu18-04%E4%B8%8B%E5%AE%89%E8%A3%85Hadoop%E5%8D%95%E6%9C%BA%E4%B8%8E%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E7%8E%AF%E5%A2%83/"
-    >Ubuntu18.04下安装Hadoop单机与伪分布式环境</a
-  >
-</h2>
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Ubuntu18.04下安装Hadoop单机与伪分布式环境
+</h1>
   
 
     </header>
@@ -83,6 +54,14 @@
       
     </div>
     
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
 
     
 
@@ -230,189 +209,80 @@
   </div>
 
   
-
   
-  
-  
-
-  
-
-</article>
+  <nav class="article-nav">
     
-    <article id="post-基于ModelArts的目标检测——找云宝" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
     
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/12/20/%E5%9F%BA%E4%BA%8EModelArts%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E2%80%94%E2%80%94%E6%89%BE%E4%BA%91%E5%AE%9D/"
-    >基于ModelArts的目标检测——找云宝</a
-  >
-</h2>
+      <a href="/2019/12/20/%E5%9F%BA%E4%BA%8EModelArts%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E2%80%94%E2%80%94%E6%89%BE%E4%BA%91%E5%AE%9D/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">基于ModelArts的目标检测——找云宝</div>
+      </a>
+    
+  </nav>
+
+
   
 
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/12/20/%E5%9F%BA%E4%BA%8EModelArts%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E2%80%94%E2%80%94%E6%89%BE%E4%BA%91%E5%AE%9D/" class="article-date">
-  <time datetime="2019-12-20T05:09:30.000Z" itemprop="datePublished">2019-12-20</time>
-</a>
-      
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
     </div>
-    
-
-    
-
-    <div class="article-entry" itemprop="articleBody">
-      
-
-
-      
-
-      
-      <ol>
-<li><p>步骤1：准备数据</p>
-</li>
-<li><p>步骤2：创建物体检测项目</p>
-</li>
-<li><p>步骤3：数据标注</p>
-</li>
-<li><p>步骤4：自动训练，生成模型</p>
-</li>
-<li><p>步骤5：将模型部署上线为在线服务</p>
-</li>
-<li><p>步骤6：测试服务</p>
-<h2 id="步骤1：准备数据"><a href="#步骤1：准备数据" class="headerlink" title="步骤1：准备数据"></a>步骤1：准备数据</h2><p>ModelArts在公共OBS桶中提供了云宝的示例数据集，命名为“Yunbao-Data-Custom“，因此，本文的操作示例使用此数据集进行模型构建。首先将<a href="https://modelarts-cnnorth1-market-dataset.obs.cn-north-1.myhuaweicloud.com/dataset-market/Yunbao-Data-Custom/archiver/Yunbao-Data-Custom.zip" target="_blank" rel="noopener">数据集</a>下载到本地；在本地，将“Yunbao-Data-Custom.zip“压缩包解压。例如，解压至本地“Yunbao-Data-Custom“文件夹下。使用批量上传方式将“Yunbao-Data-Custom“文件夹下的所有文件上传至OBS路径下。例如“/yunbao-ai/dataset-yunbao-ai”。获取的数据集分为2个子目录，分别为“eval“和“train“。“train“存储的数据用于模型训练，“eval“存储的数据可用于模型的预测。</p>
-<h2 id="步骤2：创建物体检测项目"><a href="#步骤2：创建物体检测项目" class="headerlink" title="步骤2：创建物体检测项目"></a>步骤2：创建物体检测项目</h2><ol>
-<li>在ModelArts管理控制台，单击左侧导航栏[“自动学习”]。(<a href="https://console.huaweicloud.com/modelarts/?region=cn-north-4#/manage/dashboard" target="_blank" rel="noopener">https://console.huaweicloud.com/modelarts/?region=cn-north-4#/manage/dashboard</a>)</li>
-<li>在“物体检测“方框中单击“创建项目“，在“创建物体检测项目“页面中，填写“项目名称“，选择训练数据，云宝数据集OBS路径为”/yunbao-ai/dataset-yunbao-ai/train/“。</li>
-<li>单击“创建项目“，完成物体检测项目创建。项目创建成功后，页面自动跳转至“自动学习“页面，并自动执行数据源同步操作。创建完成后如图1所示。<br><img src="https://img-blog.csdnimg.cn/20191220111036251.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="图1"> </li>
-</ol>
-<h2 id="步骤3：标注数据"><a href="#步骤3：标注数据" class="headerlink" title="步骤3：标注数据"></a>步骤3：标注数据</h2><p>数据标注，针对物体检测项目，即在已有数据集图像中，标注出物体位置，并为其打上标签。标注好的数据用于模型训练。</p>
-<ol>
-<li>在自动学习页面，单击项目名称，进入自动学习模型构建的主页面。自动学习项目创建时，会自动执行数据源同步操作。由于数据源同步需要一定时间，如果出现同步失败，可单击“同步数据源“手动执行。</li>
-<li>在“数据标注“页面单击“未标注“页签，此页面展示所有未标注的图片数据。单击任意一张图片，进入图片标注界面。</li>
-<li>用鼠标框选图片中的云宝所在区域，然后在弹出的对话框中输入标签名称，例如此示例中的“yunbao“，按“Enter“键完成此图片的添加。标注完成后，左侧图片目录中此图片的状态将显示为“已标注“。<br><img src="https://img-blog.csdnimg.cn/20191220112333977.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="biaozhu"> </li>
-</ol>
-<h2 id="步骤4：自动训练，生成模型"><a href="#步骤4：自动训练，生成模型" class="headerlink" title="步骤4：自动训练，生成模型"></a>步骤4：自动训练，生成模型</h2><ol>
-<li>完成数据标注后，在“数据标注“页面设置训练参数，首次训练建议训练时长不要超过1小时，后面可以根据训练精度调整训练时长。也可单击“高级设置“，对推理时间和训练版本进行设置。<br><img src="https://img-blog.csdnimg.cn/20191220124026446.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="train"></li>
-<li>单击“开始训练“，开始模型的自动训练。训练时间相对较长。如果关闭或退出此页面，系统仍然在执行训练操作。<br><img src="https://img-blog.csdnimg.cn/20191220124303464.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="training">  </li>
-</ol>
-<h2 id="步骤5：将模型部署上线为在线服务"><a href="#步骤5：将模型部署上线为在线服务" class="headerlink" title="步骤5：将模型部署上线为在线服务"></a>步骤5：将模型部署上线为在线服务</h2><ol>
-<li>在“模型训练“页签中，待训练状态变为“运行成功“，单击“版本管理“区域中的“部署“，开始将物体检测模型部署上线至在线服务。<br><img src="https://img-blog.csdnimg.cn/20191220125153997.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="deploy"></li>
-<li>启动部署上线后，系统自动跳转至部署上线页面。此页面将呈现模型部署上线的进度和状态。部署上线将耗费较多时间，请耐心等待。部署完成后，版本管理区域的状态将变更为“部署成功”。<br><img src="https://img-blog.csdnimg.cn/20191220125358755.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="部署">  </li>
-</ol>
-<h2 id="步骤6：测试服务"><a href="#步骤6：测试服务" class="headerlink" title="步骤6：测试服务"></a>步骤6：测试服务</h2><ol>
-<li>在“部署上线“界面，选择状态为“部署成功“的服务版本，在“服务测试“区域单击“上传”。<br><img src="https://img-blog.csdnimg.cn/20191220130145234.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="test"></li>
-<li>从本地环境选择一张图片，此图片中包含云宝。然后单击“预测“进行测试。<br>预测完成后，右侧“预测结果“区域输出标签名称“yunbao“，以及位置坐标和检测的评分。预测结果中，“detection_boxes“表示物体所在位置坐标，“detection_scores“表示检测评分，表示坐标内图像是云宝的概览评分。<br><img src="https://img-blog.csdnimg.cn/20191220130437345.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="预测">可以看到三个云宝图片预测结果分别是100%、98%和85%，准确率还是很高的。</li>
-</ol>
-</li>
-</ol>
-
-      
-      <!-- 打赏 -->
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/12/20/%E5%9F%BA%E4%BA%8EModelArts%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E2%80%94%E2%80%94%E6%89%BE%E4%BA%91%E5%AE%9D/" data-id="ck4dr7dck0001x0viccx6dxyq"
-        class="article-share-link">分享</a>
-      
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-hello-world" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/12/19/hello-world/"
-    >Hello World</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/12/19/hello-world/" class="article-date">
-  <time datetime="2019-12-19T11:26:36.086Z" itemprop="datePublished">2019-12-19</time>
-</a>
-      
-    </div>
-    
-
-    
-
-    <div class="article-entry" itemprop="articleBody">
-      
-
-
-      
-
-      
-      <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-      
-      <!-- 打赏 -->
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/12/19/hello-world/" data-id="ck4dr7dc90000x0vi33aq1269"
-        class="article-share-link">分享</a>
-      
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-  </article>
-  
-
-  
-</section>
 </div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        notify: false,
+        verify: false,
+        app_id: 'chaSYi8FMdJBwzIBpxeNjqWC-gzGzoHsz',
+        app_key: 'PqqkLYgPkHvH1BmyQqySWnSK',
+        path: window.location.pathname,
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
 
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
       <footer class="footer">
   <div class="outer">
     <ul class="list-inline">
@@ -451,8 +321,8 @@
       </div>
     </main>
     
-      <aside class="sidebar">
-        
+    <aside class="sidebar">
+      
         <button class="navbar-toggle"></button>
 <nav class="navbar">
   
@@ -544,6 +414,23 @@
 
 
 
+
+  
+<script src="/js/tocbot.min.js"></script>
+
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
 
 
 <script>
