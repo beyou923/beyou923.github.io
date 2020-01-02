@@ -58,6 +58,80 @@
 
     
     
+    <article id="post-贪心算法之邮局位置问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/02/%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95%E4%B9%8B%E9%82%AE%E5%B1%80%E4%BD%8D%E7%BD%AE%E9%97%AE%E9%A2%98/"
+    >贪心算法之邮局位置问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95%E4%B9%8B%E9%82%AE%E5%B1%80%E4%BD%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2020-01-02T09:12:41.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+      <h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>在一条街上有 n 所房子， H[i] (1 ≤ i ≤ n) 是第 i 所房子离街道起点处的距离 (以米为单位)，假定 H[1] &lt; H[2] &lt; · · · &lt; H[n]。目前该街道上还没有一所邮局，现计划新建若干所邮局，使得每所房子到最近的邮局距离在 100 米以内。试设计一个时间复杂度为 O(n) 的算法，计算出新建邮局的位置，即每所新建邮局离街道起点处的距离 P [j] (1 ≤ j ≤ m)，同时确保新建邮局个数 m 最小。</p>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>为了使邮局数量m最小，也就是说我们要让邮局的存在效用最大化，即每个邮局的覆盖范围最大话，如何做才能让单个邮局覆盖范围最大呢？当然是把邮局建在两栋房子之间。下面用一个图来说明（画得有点挫，见谅！！！）：<br><img src="https://img-blog.csdnimg.cn/2020010215460952.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述">从图里面可以看出，Post[1]设立在H[1]+100处时覆盖范围最广（Post[i]表示第i所邮局，1 ≤ i ≤ n），在此点的右边设立，不符合题意，第一户人家距离邮局太远，若在左边，那么范围不够大，导致邮局数量变多，也不符合贪心策略思想。将第一个邮局设立之后，应当考虑Post[2],Post[3]…。假如H[2]到Post[1]的距离在100m以内（包括100m），那么Post[1]可以覆盖H[1]和H[2]，现在只需要考虑为H[3]以后的房子建邮局，即在H[3]+100处新建邮局；反之，如果H[2]到Post[1]的距离在100m之外，那么，Post[1]的覆盖范围只是H[1]，我们需要为H[2]及其后的房子新建邮局，即在H[2]+100处新建。后面依次类推。<br>将上述分析一般化。<br>Post[i]为在H[i]+100处新建的邮局，如果H[i+1] - Post[i] ≤ 100 ，那么，下一个邮局在H[i+2]+100处新建；如果H[i+1] - Post[i] &gt;100，那么，下一个邮局在H[i+1]+100处新建。据此，可以写出下面的算法。</p>
+<p> <strong>- Note：将起点start当做H[0]和Post[0]</strong></p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><ul>
+<li>C语言实现 </li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BASE 100 <span class="comment">//每所房子到最近的邮局距离</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> N 4 <span class="comment">//房子数量</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">greedy_algorithm</span><span class="params">(<span class="keyword">int</span> h[],<span class="keyword">int</span> post[],<span class="keyword">int</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(i &lt;= n)</span><br><span class="line">    &#123;</span><br><span class="line">        post[++num] = h[i] + BASE;</span><br><span class="line">        <span class="keyword">if</span>(h[i+<span class="number">1</span>] - post[num] &lt;= BASE)</span><br><span class="line">            i += <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            i += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> num;<span class="comment">//最少邮局数量</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> house[N+<span class="number">1</span>] = &#123;<span class="number">0</span>,<span class="number">50</span>,<span class="number">180</span>,<span class="number">260</span>,<span class="number">350</span>&#125;;<span class="comment">//测试数据</span></span><br><span class="line">    <span class="keyword">int</span> post[N+<span class="number">1</span>] = &#123;<span class="number">0</span>&#125;;<span class="comment">//初始化</span></span><br><span class="line">    <span class="keyword">int</span> m = greedy_algorithm(house,post,N);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= m; i++)<span class="comment">//每个邮局距离start的距离</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%d\t"</span>,post[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n邮局个数为：%d\n"</span>,m);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Python实现</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">BASE = <span class="number">100</span> <span class="comment"># 每所房子到最近的邮局距离</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">greedy</span><span class="params">(house)</span>:</span></span><br><span class="line">    n = len(house)</span><br><span class="line">    post = [<span class="number">0</span>]</span><br><span class="line">    i = <span class="number">1</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span>(i &lt; n):</span><br><span class="line">        post.append(house[i] + BASE)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(house[i+<span class="number">1</span>] - post[<span class="number">-1</span>] &lt;= BASE):</span><br><span class="line">            i += <span class="number">2</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            i += <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> post</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ ==<span class="string">"__main__"</span>:</span><br><span class="line">    house = [<span class="number">0</span>,<span class="number">50</span>,<span class="number">180</span>,<span class="number">260</span>,<span class="number">350</span>] <span class="comment"># 测试数据</span></span><br><span class="line">    post = []</span><br><span class="line">    post = greedy(house)</span><br><span class="line">    </span><br><span class="line">    m = len(post) <span class="number">-1</span><span class="comment"># 邮局个数</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(m+<span class="number">1</span>):</span><br><span class="line">        print(post[i])<span class="comment"># 邮局i到start的距离</span></span><br><span class="line">    print(m)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Java实现</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PostLength</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">greedyAlgorithm</span><span class="params">(<span class="keyword">int</span>[] hose, <span class="keyword">int</span>[] post)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> base = <span class="number">100</span>;<span class="comment">//每所房子到最近的邮局距离</span></span><br><span class="line">        <span class="keyword">int</span> n = hose.length;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(i &lt; n)</span><br><span class="line">        &#123;</span><br><span class="line">            post[++num] = hose[i] + base;</span><br><span class="line">            <span class="keyword">if</span>(hose[i+<span class="number">1</span>] - post[num] &lt;= base)</span><br><span class="line">                i += <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                i += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> num;<span class="comment">//返回邮局数量</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">int</span>[] house = &#123;<span class="number">0</span>,<span class="number">50</span>,<span class="number">180</span>,<span class="number">260</span>,<span class="number">350</span>&#125;;<span class="comment">//测试数据</span></span><br><span class="line">        <span class="keyword">int</span>[] post = &#123;<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>&#125;;<span class="comment">//初始化</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> m = greedyAlgorithm(house,post);<span class="comment">//最小邮局数</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;=m ; i++)</span><br><span class="line">            System.out.println(post[i]);<span class="comment">//每个邮局离start的距离</span></span><br><span class="line">        System.out.println(m);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+      <!-- 打赏 -->
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/01/02/%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95%E4%B9%8B%E9%82%AE%E5%B1%80%E4%BD%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" data-id="ck4wiimrv0000f8vidguzc8pz"
+        class="article-share-link">分享</a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-动态规划专题---计数型" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -641,7 +715,7 @@
     <ul class="list-inline">
       <li>
         &copy;
-        2015-2019
+        2015-2020
         Bihui
       </li>
       <li>
