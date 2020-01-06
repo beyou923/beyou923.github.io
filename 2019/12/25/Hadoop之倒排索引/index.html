@@ -1,78 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8" />
-    
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>
-    Hadoop之倒排索引 |  面朝大海，春暖花开
-  </title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="需求输入N个文件，生成带详细信息的倒排索引。其中，输入为莎士比亚文集Shakespeare.tar.gz。举例如下，有4个输入文件：  d1.txt: cat dog cat fox d2.txt: cat bear cat cat fox d3.txt: fox wolf dog d4.txt: wolf hen rabbit cat sheep要求建立如下格式的倒排索引： cat —&gt;3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop之倒排索引">
+<meta property="og:url" content="http://yoursite.com/2019/12/25/Hadoop%E4%B9%8B%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:site_name" content="面朝大海，春暖花开">
+<meta property="og:description" content="需求输入N个文件，生成带详细信息的倒排索引。其中，输入为莎士比亚文集Shakespeare.tar.gz。举例如下，有4个输入文件：  d1.txt: cat dog cat fox d2.txt: cat bear cat cat fox d3.txt: fox wolf dog d4.txt: wolf hen rabbit cat sheep要求建立如下格式的倒排索引： cat —&gt;3">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191225192348832.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191225192511863.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191225192837964.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70">
+<meta property="article:published_time" content="2019-12-25T12:25:02.000Z">
+<meta property="article:modified_time" content="2019-12-25T12:40:25.659Z">
+<meta property="article:author" content="Bihui">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20191225192348832.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2diaDE4NjgyMDMwODYy,size_16,color_FFFFFF,t_70">
+
+<link rel="canonical" href="http://yoursite.com/2019/12/25/Hadoop%E4%B9%8B%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Hadoop之倒排索引 | 面朝大海，春暖花开</title>
   
-  <link rel="shortcut icon" href="/favicon.ico" />
-  
-  
-<link rel="stylesheet" href="/css/style.css">
-  
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
-  
-<script src="/js/pace.min.js"></script>
 
 
-  
 
-  
 
-<meta name="generator" content="Hexo 4.1.1"></head>
 
-</html>
 
-<body>
-  <div id="app">
-    <main class="content">
-      <section class="outer">
-  <article id="post-Hadoop之倒排索引" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Hadoop之倒排索引
-</h1>
-  
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
 
-    </header>
-    
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
 
-    
-    <div class="article-meta">
-      <a href="/2019/12/25/Hadoop%E4%B9%8B%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/" class="article-date">
-  <time datetime="2019-12-25T12:25:02.000Z" itemprop="datePublished">2019-12-25</time>
-</a>
-      
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">面朝大海，春暖花开</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
     </div>
-    
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
 
     
-    
-    <div class="tocbot"></div>
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
+          <div class="content">
+            
 
-
-    
-
-    <div class="article-entry" itemprop="articleBody">
+  <div class="posts-expand">
       
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/25/Hadoop%E4%B9%8B%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/">
 
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Bihui">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="面朝大海，春暖花开">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hadoop之倒排索引
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2019-12-25 20:25:02 / Modified: 20:40:25" itemprop="dateCreated datePublished" datetime="2019-12-25T20:25:02+08:00">2019-12-25</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-
-      
-      <h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>输入N个文件，生成带详细信息的倒排索引。其中，输入为莎士比亚文集<a href="http://course.ucas.ac.cn/access/content/group/49762-2/Shakespeare.tar.gz" target="_blank" rel="noopener">Shakespeare.tar.gz</a>。<br>举例如下，有4个输入文件：</p>
+        <h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>输入N个文件，生成带详细信息的倒排索引。其中，输入为莎士比亚文集<a href="http://course.ucas.ac.cn/access/content/group/49762-2/Shakespeare.tar.gz" target="_blank" rel="noopener">Shakespeare.tar.gz</a>。<br>举例如下，有4个输入文件：</p>
 <ul>
 <li>d1.txt: cat dog cat fox</li>
 <li>d2.txt: cat bear cat cat fox</li>
@@ -157,294 +296,188 @@
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">broach-&gt;<span class="number">4</span>:&#123;(<span class="number">0</span>ws0110.txt,<span class="number">1</span>,<span class="number">24700</span>),(<span class="number">0</span>ws3710.txt,<span class="number">1</span>,<span class="number">21558</span>),(<span class="number">0</span>ws4210.txt,<span class="number">1</span>,<span class="number">27895</span>),(<span class="number">0</span>ws0910.txt,<span class="number">1</span>,<span class="number">23692</span>)&#125;</span><br><span class="line">throgh-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>)&#125;</span><br><span class="line">lustier-&gt;<span class="number">3</span>:&#123;(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>),(<span class="number">0</span>ws1610.txt,<span class="number">1</span>,<span class="number">27734</span>),(<span class="number">0</span>ws3010.txt,<span class="number">1</span>,<span class="number">26502</span>)&#125;</span><br><span class="line">instances-&gt;<span class="number">6</span>:&#123;(<span class="number">0</span>ws2510.txt,<span class="number">1</span>,<span class="number">25060</span>),(<span class="number">0</span>ws1110.txt,<span class="number">1</span>,<span class="number">20592</span>),(<span class="number">0</span>ws2210.txt,<span class="number">1</span>,<span class="number">24615</span>),(<span class="number">0</span>ws2410.txt,<span class="number">1</span>,<span class="number">22949</span>),(<span class="number">0</span>ws2110.txt,<span class="number">1</span>,<span class="number">29220</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>)&#125;</span><br><span class="line">stout-&gt;<span class="number">12</span>:&#123;(<span class="number">0</span>ws0310.txt,<span class="number">2</span>,<span class="number">27573</span>),(<span class="number">0</span>ws0410.txt,<span class="number">1</span>,<span class="number">32588</span>),(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>),(<span class="number">0</span>ws1610.txt,<span class="number">2</span>,<span class="number">27734</span>),(<span class="number">0</span>ws4210.txt,<span class="number">1</span>,<span class="number">27895</span>),(<span class="number">0</span>ws3710.txt,<span class="number">1</span>,<span class="number">21558</span>),(<span class="number">0</span>ws3410.txt,<span class="number">1</span>,<span class="number">20206</span>),(<span class="number">0</span>ws0210.txt,<span class="number">2</span>,<span class="number">28689</span>),(<span class="number">0</span>ws2810.txt,<span class="number">1</span>,<span class="number">23284</span>),(<span class="number">0</span>ws0110.txt,<span class="number">3</span>,<span class="number">24700</span>),(<span class="number">0</span>ws1410.txt,<span class="number">1</span>,<span class="number">23904</span>),(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>)&#125;</span><br><span class="line">iuliet-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws3110.txt,<span class="number">8</span>,<span class="number">25123</span>),(<span class="number">0</span>ws1610.txt,<span class="number">54</span>,<span class="number">27734</span>)&#125;</span><br><span class="line">flee-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>)&#125;</span><br><span class="line">fled-&gt;<span class="number">26</span>:&#123;(<span class="number">0</span>ws2010.txt,<span class="number">1</span>,<span class="number">24815</span>),(<span class="number">0</span>ws2210.txt,<span class="number">5</span>,<span class="number">24615</span>),(<span class="number">0</span>ws0410.txt,<span class="number">4</span>,<span class="number">32588</span>),(<span class="number">0</span>ws1410.txt,<span class="number">1</span>,<span class="number">23904</span>),(<span class="number">0</span>ws3710.txt,<span class="number">1</span>,<span class="number">21558</span>),(<span class="number">0</span>ws0610.txt,<span class="number">2</span>,<span class="number">17919</span>),(<span class="number">0</span>ws3910.txt,<span class="number">5</span>,<span class="number">30687</span>),(<span class="number">0</span>ws3010.txt,<span class="number">1</span>,<span class="number">26502</span>),(<span class="number">0</span>ws0910.txt,<span class="number">1</span>,<span class="number">23692</span>),(<span class="number">0</span>ws3510.txt,<span class="number">3</span>,<span class="number">28227</span>),(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>),(<span class="number">0</span>ws1710.txt,<span class="number">3</span>,<span class="number">19538</span>),(<span class="number">0</span>ws0210.txt,<span class="number">6</span>,<span class="number">28689</span>),(<span class="number">0</span>ws3310.txt,<span class="number">3</span>,<span class="number">27164</span>),(<span class="number">0</span>ws2110.txt,<span class="number">3</span>,<span class="number">29220</span>),(<span class="number">0</span>ws1510.txt,<span class="number">7</span>,<span class="number">24965</span>),(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>),(<span class="number">0</span>ws3210.txt,<span class="number">2</span>,<span class="number">29959</span>),(<span class="number">0</span>ws1110.txt,<span class="number">3</span>,<span class="number">20592</span>),(<span class="number">0</span>ws4010.txt,<span class="number">3</span>,<span class="number">28122</span>),(<span class="number">0</span>ws3410.txt,<span class="number">7</span>,<span class="number">20206</span>),(<span class="number">0</span>ws0110.txt,<span class="number">8</span>,<span class="number">24700</span>),(<span class="number">0</span>ws1610.txt,<span class="number">2</span>,<span class="number">27734</span>),(<span class="number">0</span>ws0310.txt,<span class="number">8</span>,<span class="number">27573</span>),(<span class="number">0</span>ws1810.txt,<span class="number">1</span>,<span class="number">24517</span>),(<span class="number">0</span>ws2410.txt,<span class="number">3</span>,<span class="number">22949</span>)&#125;</span><br><span class="line">hedgd-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws1810.txt,<span class="number">1</span>,<span class="number">24517</span>),(<span class="number">0</span>ws1410.txt,<span class="number">1</span>,<span class="number">23904</span>)&#125;</span><br><span class="line">hedge-&gt;<span class="number">10</span>:&#123;(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>),(<span class="number">0</span>ws3010.txt,<span class="number">1</span>,<span class="number">26502</span>),(<span class="number">0</span>ws2410.txt,<span class="number">1</span>,<span class="number">22949</span>),(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>),(<span class="number">0</span>ws0210.txt,<span class="number">1</span>,<span class="number">28689</span>),(<span class="number">0</span>ws2210.txt,<span class="number">1</span>,<span class="number">24615</span>),(<span class="number">0</span>ws3510.txt,<span class="number">1</span>,<span class="number">28227</span>),(<span class="number">0</span>ws2010.txt,<span class="number">1</span>,<span class="number">24815</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>),(<span class="number">0</span>ws4010.txt,<span class="number">2</span>,<span class="number">28122</span>)&#125;</span><br><span class="line">flea-&gt;<span class="number">5</span>:&#123;(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>),(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>),(<span class="number">0</span>ws2310.txt,<span class="number">2</span>,<span class="number">29377</span>),(<span class="number">0</span>ws3310.txt,<span class="number">1</span>,<span class="number">27164</span>),(<span class="number">0</span>ws2810.txt,<span class="number">1</span>,<span class="number">23284</span>)&#125;</span><br><span class="line">taxing-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws2510.txt,<span class="number">1</span>,<span class="number">25060</span>)&#125;</span><br><span class="line">responsiue-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>)&#125;</span><br><span class="line">flew-&gt;<span class="number">4</span>:&#123;(<span class="number">0</span>ws0210.txt,<span class="number">1</span>,<span class="number">28689</span>),(<span class="number">0</span>ws3310.txt,<span class="number">1</span>,<span class="number">27164</span>),(<span class="number">0</span>ws4210.txt,<span class="number">1</span>,<span class="number">27895</span>),(<span class="number">0</span>ws1810.txt,<span class="number">1</span>,<span class="number">24517</span>)&#125;</span><br><span class="line">treuant-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>)&#125;</span><br><span class="line">commandment-&gt;<span class="number">5</span>:&#123;(<span class="number">0</span>ws2610.txt,<span class="number">4</span>,<span class="number">32135</span>),(<span class="number">0</span>ws4010.txt,<span class="number">1</span>,<span class="number">28122</span>),(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>),(<span class="number">0</span>ws2110.txt,<span class="number">1</span>,<span class="number">29220</span>),(<span class="number">0</span>ws2510.txt,<span class="number">1</span>,<span class="number">25060</span>)&#125;</span><br><span class="line">sailemaker-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>)&#125;</span><br><span class="line">carried-&gt;<span class="number">16</span>:&#123;(<span class="number">0</span>ws3910.txt,<span class="number">1</span>,<span class="number">30687</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>),(<span class="number">0</span>ws1710.txt,<span class="number">1</span>,<span class="number">19538</span>),(<span class="number">0</span>ws3510.txt,<span class="number">1</span>,<span class="number">28227</span>),(<span class="number">0</span>ws2010.txt,<span class="number">1</span>,<span class="number">24815</span>),(<span class="number">0</span>ws2210.txt,<span class="number">1</span>,<span class="number">24615</span>),(<span class="number">0</span>ws0610.txt,<span class="number">2</span>,<span class="number">17919</span>),(<span class="number">0</span>ws3310.txt,<span class="number">1</span>,<span class="number">27164</span>),(<span class="number">0</span>ws1110.txt,<span class="number">1</span>,<span class="number">20592</span>),(<span class="number">0</span>ws3110.txt,<span class="number">4</span>,<span class="number">25123</span>),(<span class="number">0</span>ws4210.txt,<span class="number">2</span>,<span class="number">27895</span>),(<span class="number">0</span>ws3610.txt,<span class="number">2</span>,<span class="number">31061</span>),(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>),(<span class="number">0</span>ws3410.txt,<span class="number">1</span>,<span class="number">20206</span>),(<span class="number">0</span>ws3010.txt,<span class="number">2</span>,<span class="number">26502</span>),(<span class="number">0</span>ws2310.txt,<span class="number">1</span>,<span class="number">29377</span>)&#125;</span><br><span class="line">auoiding-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws0310.txt,<span class="number">1</span>,<span class="number">27573</span>)&#125;</span><br><span class="line">inthrald-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws0110.txt,<span class="number">1</span>,<span class="number">24700</span>)&#125;</span><br><span class="line">clearenesse-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws3410.txt,<span class="number">1</span>,<span class="number">20206</span>)&#125;</span><br><span class="line">blithe-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws2210.txt,<span class="number">1</span>,<span class="number">24615</span>),(<span class="number">0</span>ws0910.txt,<span class="number">1</span>,<span class="number">23692</span>)&#125;</span><br><span class="line">clothes-&gt;<span class="number">8</span>:&#123;(<span class="number">0</span>ws2310.txt,<span class="number">1</span>,<span class="number">29377</span>),(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>),(<span class="number">0</span>ws0110.txt,<span class="number">1</span>,<span class="number">24700</span>),(<span class="number">0</span>ws1610.txt,<span class="number">1</span>,<span class="number">27734</span>),(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>),(<span class="number">0</span>ws3110.txt,<span class="number">1</span>,<span class="number">25123</span>),(<span class="number">0</span>ws4010.txt,<span class="number">1</span>,<span class="number">28122</span>)&#125;</span><br><span class="line">raunge-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws1510.txt,<span class="number">1</span>,<span class="number">24965</span>),(<span class="number">0</span>ws2310.txt,<span class="number">1</span>,<span class="number">29377</span>)&#125;</span><br><span class="line">gonerill-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws3310.txt,<span class="number">18</span>,<span class="number">27164</span>)&#125;</span><br><span class="line">stowd-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws3210.txt,<span class="number">1</span>,<span class="number">29959</span>)&#125;</span><br><span class="line">carrier-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws1910.txt,<span class="number">4</span>,<span class="number">27807</span>),(<span class="number">0</span>ws0910.txt,<span class="number">1</span>,<span class="number">23692</span>)&#125;</span><br><span class="line">carries-&gt;<span class="number">15</span>:&#123;(<span class="number">0</span>ws1910.txt,<span class="number">1</span>,<span class="number">27807</span>),(<span class="number">0</span>ws3710.txt,<span class="number">1</span>,<span class="number">21558</span>),(<span class="number">0</span>ws3510.txt,<span class="number">1</span>,<span class="number">28227</span>),(<span class="number">0</span>ws1710.txt,<span class="number">2</span>,<span class="number">19538</span>),(<span class="number">0</span>ws0610.txt,<span class="number">1</span>,<span class="number">17919</span>),(<span class="number">0</span>ws2410.txt,<span class="number">1</span>,<span class="number">22949</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>),(<span class="number">0</span>ws4210.txt,<span class="number">2</span>,<span class="number">27895</span>),(<span class="number">0</span>ws1810.txt,<span class="number">1</span>,<span class="number">24517</span>),(<span class="number">0</span>ws4110.txt,<span class="number">1</span>,<span class="number">19796</span>),(<span class="number">0</span>ws2510.txt,<span class="number">1</span>,<span class="number">25060</span>),(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>),(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>),(<span class="number">0</span>ws3010.txt,<span class="number">3</span>,<span class="number">26502</span>),(<span class="number">0</span>ws1610.txt,<span class="number">1</span>,<span class="number">27734</span>)&#125;</span><br><span class="line">obiections-&gt;<span class="number">3</span>:&#123;(<span class="number">0</span>ws0210.txt,<span class="number">1</span>,<span class="number">28689</span>),(<span class="number">0</span>ws4210.txt,<span class="number">1</span>,<span class="number">27895</span>),(<span class="number">0</span>ws0110.txt,<span class="number">1</span>,<span class="number">24700</span>)&#125;</span><br><span class="line">vnsuspected-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws0410.txt,<span class="number">1</span>,<span class="number">32588</span>),(<span class="number">0</span>ws1010.txt,<span class="number">1</span>,<span class="number">24377</span>)&#125;</span><br><span class="line">arguments-&gt;<span class="number">7</span>:&#123;(<span class="number">0</span>ws1210.txt,<span class="number">1</span>,<span class="number">24901</span>),(<span class="number">0</span>ws2810.txt,<span class="number">3</span>,<span class="number">23284</span>),(<span class="number">0</span>ws0310.txt,<span class="number">2</span>,<span class="number">27573</span>),(<span class="number">0</span>ws4210.txt,<span class="number">1</span>,<span class="number">27895</span>),(<span class="number">0</span>ws1410.txt,<span class="number">1</span>,<span class="number">23904</span>),(<span class="number">0</span>ws3310.txt,<span class="number">1</span>,<span class="number">27164</span>),(<span class="number">0</span>ws0410.txt,<span class="number">1</span>,<span class="number">32588</span>)&#125;</span><br><span class="line">shreds-&gt;<span class="number">2</span>:&#123;(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>),(<span class="number">0</span>ws2610.txt,<span class="number">1</span>,<span class="number">32135</span>)&#125;</span><br><span class="line">raunges-&gt;<span class="number">1</span>:&#123;(<span class="number">0</span>ws3610.txt,<span class="number">1</span>,<span class="number">31061</span>)&#125;</span><br></pre></td></tr></table></figure>
 
 
-      
-      <!-- 打赏 -->
-      
     </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/12/25/Hadoop%E4%B9%8B%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95/" data-id="ck4l9vntf0000csvi1yy5f1m3"
-        class="article-share-link">分享</a>
-      
-    </footer>
 
-  </div>
-
-  
-  
-  <nav class="article-nav">
-    
-      <a href="/2019/12/27/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E4%B8%93%E9%A2%98---%E8%AE%A1%E6%95%B0%E5%9E%8B/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            动态规划专题---计数型
-          
-        </div>
-      </a>
     
     
-      <a href="/2019/12/24/Ubuntu18-04%E4%B8%8B%E5%AE%89%E8%A3%85Hadoop%E5%8D%95%E6%9C%BA%E4%B8%8E%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E7%8E%AF%E5%A2%83/" class="article-nav-link">
-        <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Ubuntu18.04下安装Hadoop单机与伪分布式环境</div>
-      </a>
     
-  </nav>
+
+      <footer class="post-footer">
+
+        
 
 
-  
-
-  
-  
-<!-- valine评论 -->
-<div id="vcomments-box">
-    <div id="vcomments">
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/24/Ubuntu18-04%E4%B8%8B%E5%AE%89%E8%A3%85Hadoop%E5%8D%95%E6%9C%BA%E4%B8%8E%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E7%8E%AF%E5%A2%83/" rel="prev" title="Ubuntu18.04下安装Hadoop单机与伪分布式环境">
+      <i class="fa fa-chevron-left"></i> Ubuntu18.04下安装Hadoop单机与伪分布式环境
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/27/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E4%B8%93%E9%A2%98---%E8%AE%A1%E6%95%B0%E5%9E%8B/" rel="next" title="动态规划专题---计数型">
+      动态规划专题---计数型 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
-</div>
-<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
-<script>
-    new Valine({
-        el: '#vcomments',
-        notify: false,
-        verify: false,
-        app_id: 'chaSYi8FMdJBwzIBpxeNjqWC-gzGzoHsz',
-        app_key: 'PqqkLYgPkHvH1BmyQqySWnSK',
-        path: window.location.pathname,
-        avatar: 'mp',
-        placeholder: '给我的文章加点评论吧~',
-        recordIP: true
-    });
-    const infoEle = document.querySelector('#vcomments .info');
-    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
-        infoEle.childNodes.forEach(function (item) {
-            item.parentNode.removeChild(item);
-        });
-    }
-</script>
-<style>
-    #vcomments-box {
-        padding: 5px 30px;
-    }
-
-    @media screen and (max-width: 800px) {
-        #vcomments-box {
-            padding: 5px 0px;
-        }
-    }
-
-    #vcomments-box #vcomments {
-        background-color: #fff;
-    }
-
-    .v .vlist .vcard .vh {
-        padding-right: 20px;
-    }
-
-    .v .vlist .vcard {
-        padding-left: 10px;
-    }
-</style>
-
-  
-
+      </footer>
+    
+  </article>
   
   
   
 
-</article>
-</section>
-      <footer class="footer">
-  <div class="outer">
-    <ul class="list-inline">
-      <li>
-        &copy;
-        2015-2020
-        Bihui
-      </li>
-      <li>
-        
-        
-        
-        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a> by shenyu
-        
-      </li>
-    </ul>
-    <ul class="list-inline">
-      <li>
-        
-        
-        <ul class="list-inline">
-  <li>PV:<span id="busuanzi_value_page_pv"></span></li>
-  <li>UV:<span id="busuanzi_value_site_uv"></span></li>
-</ul>
-        
-      </li>
-      <li>
-        <!-- cnzz统计 -->
-        
-        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
-        
-      </li>
-    </ul>
   </div>
-</footer>
-    <div class="to_top">
-        <div class="totop" id="totop">
-  <i class="ri-arrow-up-line"></i>
-</div>
-      </div>
-    </main>
-    
-    <aside class="sidebar">
-      
-        <button class="navbar-toggle"></button>
-<nav class="navbar">
-  
-  <div class="logo">
-    <a href="/"><img src="/images/ayer-side.svg" alt="面朝大海，春暖花开"></a>
-  </div>
-  
-  <ul class="nav nav-main">
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/">主页</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/archives">目录</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/tags">标签</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/null">摄影</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/null">阅读</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/2019/about">关于我</a>
-    </li>
-    
-  </ul>
-</nav>
-<nav class="navbar navbar-bottom">
-  <ul class="nav">
-    <li class="nav-item">
-      
-      <a class="nav-item-link nav-item-search"  title="Search">
-        <i class="ri-search-line"></i>
-      </a>
-      
-      
-      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
-        <i class="ri-rss-line"></i>
-      </a>
-      
-    </li>
-  </ul>
-</nav>
-<div class="search-form-wrap">
-  <div class="local-search local-search-plugin">
-  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
-  <div id="local-search-result" class="local-search-result"></div>
-</div>
-</div>
-      </aside>
-      <div id="mask"></div>
-
-<!-- #reward -->
-<div id="reward">
-  <span class="close"><i class="ri-close-line"></i></span>
-  <p class="reward-p"><i class="ri-cup-line"></i></p>
-  <div class="reward-box">
-    
-    
-  </div>
-</div>
-      
-<script src="/js/jquery-2.0.3.min.js"></script>
 
 
-<script src="/js/jquery.justifiedGallery.min.js"></script>
-
-
-<script src="/js/lazyload.min.js"></script>
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
-
-
-  
-<script src="/fancybox/jquery.fancybox.min.js"></script>
-
-
-
-
-  
-<script src="/js/tocbot.min.js"></script>
-
-  <script>
-    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
-    tocbot.init({
-      tocSelector: '.tocbot',
-      contentSelector: '.article-entry',
-      headingSelector: 'h1, h2, h3, h4, h5, h6',
-      hasInnerContainers: true,
-      scrollSmooth: true,
-      positionFixedSelector: '.tocbot',
-      positionFixedClass: 'is-position-fixed',
-      fixedSidebarOffset: 'auto',
-    });
-  </script>
-
+          </div>
+          
 
 <script>
-  var ayerConfig = {
-    mathjax: true
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
   }
 </script>
 
-
-<script src="/js/ayer.js"></script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
-
-
-  <script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-  });
-
-  MathJax.Hub.Queue(function() {
-      var all = MathJax.Hub.getAllJax(), i;
-      for(i=0; i < all.length; i += 1) {
-          all[i].SourceElement().parentNode.className += ' has-jax';
-      }
-  });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
-<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+        </div>
+          
   
-  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
   </div>
-</body>
 
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#需求"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">2.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#倒排索引"><span class="nav-number">3.</span> <span class="nav-text">倒排索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总体思路"><span class="nav-number">4.</span> <span class="nav-text">总体思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整源代码"><span class="nav-number">5.</span> <span class="nav-text">完整源代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署运行"><span class="nav-number">6.</span> <span class="nav-text">部署运行</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Bihui</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bihui</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
 </html>
